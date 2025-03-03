@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Catalog</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>Product Catalog</h1>
+    <div id="product-cards"></div>
+    <h2>Chat</h2>
+    <div id="chat">
+        <input id="chat-input" placeholder="Type a message..." />
+        <button id="send-btn">Send</button>
+        <div id="chat-messages"></div>
+    </div>
+    <script>
+        const fetchProducts = async () => {
+            const response = await fetch('http://localhost:8080/graphql', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    query: `{
+                        products {
+                            title
+                            price
+                        }
+                    }`
+                }),
+            });
+            const { data } = await response.json();
+            const productCards = document.getElementById('product-cards');
+            data.products.forEach(product => {
+                const card = document.createElement('div');
+                card.className = 'product-card';
+                card.innerHTML = `<h2>${product.title}</h2><p>Price: $${product.price}</p>`;
+                productCards.appendChild(card);
+            });
+        };
+
+        const socket = io('http://localhost:8080');
+        const chatInput = document.getElementById('chat-input');
+        const sendBtn = document.getElementById('send-btn');
+        const chatMessages = document.getElementById('chat-messages');
+
+        sendBtn.onclick = () => {
+            socket.emit('chatMessage', chatInput.value);
+            chatInput.value = '';
+        };
+
+        socket.on('chatMessage', (msg) => {
+            const message = document.createElement('div');
+            message.innerText = msg;
+            chatMessages.appendChild(message);
+        });
+
+        fetchProducts();
+    </script>
+</body>
+</html>
