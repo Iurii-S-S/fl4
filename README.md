@@ -1,5 +1,5 @@
 # fl4
-made with nofe
+made with node
 npm istall
 node run start
 node server
